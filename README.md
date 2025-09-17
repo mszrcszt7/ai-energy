@@ -1,2 +1,132 @@
-# ai-energy
-AI 新能源投资系统系统面向“充值—投资—收益—推广”的完整业务场景，支持用户投资计划、团队邀请分润（支持三级代理）、多渠道充值与提现、钱包与交易账单管理，以及完善的后台运营能力。
+## AI 新能源管理系统 · 功能介绍
+
+> 本文为系统的对外功能简介，适合在 GitHub 展示与传播。涵盖定位、角色、核心模块、数据口径、运维与安全要点等，便于读者快速理解与上手。
+
+### 系统定位
+
+AI 新能源管理系统面向“充值—投资—收益—推广”的完整业务场景，支持用户投资计划、团队邀请分润（支持三级代理）、多渠道充值与提现、钱包与交易账单管理，以及完善的后台运营能力。
+
+### 角色与权限
+
+- **访客/用户**：注册、登录、充值、参与投资计划、查看收益与账单、提现、管理个人资料。
+- **代理/推广员**：获取专属邀请码与链接，查看团队（1/2/3 级）人数与累计充值、佣金收益与明细。
+- **管理员**：全局配置、用户与资金管理、投资计划与网关管理、内容与通知、风控与审计。
+
+### 在线页面参考（示例）
+
+- 团队总览页（登录后可见）：[`https://www.127.0.0.1.icu/referrals.php`](https://www.127.0.0.1.icu/referrals.php)
+- 团队详情页（按级别查看）：[`https://www.127.0.0.1.icu/team_details.php?level=1`](https://www.127.0.0.1.icu/team_details.php?level=1)
+- 充值历史（示例口径页）：[`https://www.127.0.0.1.top/user/deposit/history`](https://www.127.0.0.1.top/user/deposit/history)
+
+### 核心模块<img width="513" height="1060" alt="截屏2025-09-17 21 45 20" src="https://github.com/user-attachments/assets/aca72d2a-cc85-48d0-b378-83fb7231fa8b" />
+
+
+- **账号与安全**
+  - 注册/登录/退出，邮箱或手机号账号体系
+  - 密码加密保存、会话超时、CSRF 保护
+  - 个人资料、密码修改与基础认证（KYC 可选）
+
+- **钱包体系**
+  - **充值钱包（deposit_wallet）**：用于投资扣款与资金留存
+  - **收益钱包（interest_wallet）**：承载利息、佣金、返还等入账
+  - 余额展示与可视化图表，资金去向一目了然
+
+- **充值与支付**
+  - 多种充值网关（包含手动通道），支持状态流转与凭证校验
+  - 充值历史与状态查询、失败重试与人工审核
+  - 金额、手续费、汇率展示，流水入账统一写入交易表
+
+- **投资计划（Energy/Plan）**
+  - 固定利率或比例利率，多周期（一次/循环/终身）
+  - 支持本金返还、复投/复利、下一计息时间提示
+  - 投资下单、计息发放、资本返还均产生日志与交易记录
+
+- **推广与团队（三级代理）**
+  - 专属邀请码与邀请链接生成（配合二维码）
+  - **团队统计：人数与累计充值**
+    - Level 1/2/3 分级统计，便于精细化管理
+    - 累计充值口径：以交易表 `transactions` 中 `remark='deposit' AND trx_type='+'` 汇总
+  - **佣金收入**
+    - 触发规则：投资/充值/利息（按系统配置）
+    - 记账口径：交易表 `remark='referral_commission'` 汇总展示
+  - 直接下级列表：用户名、邮箱、钱包金额、注册时间等
+
+- **提现**
+  - 多提现方式、手续费配置、最低/最高限额
+  - 申请—审核—发放流程；失败/驳回原因记录
+<img width="3196" height="1686" alt="截屏2025-09-17 21 47 49" src="https://github.com/user-attachments/assets/597b22e1-9e5e-4e40-b91a-cdf2ed119ebc" />
+<img width="488" height="994" alt="截屏2025-09-17 21 45 42" src="https://github.com/user-attachments/assets/f2d70bb4-5371-4874-a4f3-36497f129305" />
+<img width="497" height="979" alt="截屏2025-09-17 21 45 30" src="https://github.com/user-attachments/assets/42daaf53-1a95-4179-a88e-6d36c978d4a3" />
+<img width="513" height="1060" alt="截屏2025-09-17 21 45 20" src="https://github.com/user-attachments/assets/a03e5a6e-8ed2-4442-ba40-63d989a9bad6" />
+<img width="516" height="996" alt="截屏2025-09-17 21 45 08" src="https://github.com/user-attachments/assets/7aa5702e-7db4-4184-9c21-490b5413e228" />
+
+- **交易与报表**
+  - 全量交易流水：充值、提现、投资、利息、返还、佣金等
+  - 过滤查询、分页导出（可扩展 CSV/Excel）
+  - 管理后台图表：充值/提现走势、活跃度、资产分布
+
+- **消息与通知**
+  - 邮件/短信/站内通知模板，事件触发发送（充值成功、投资成功、佣金到账等）
+  - 模板国际化与变量占位支持
+
+- **国际化与主题**
+  - 多语言文案，主题皮肤切换（如暗色/亮色主题）
+  - 前端采用响应式布局，兼容常见浏览器与移动端
+
+### 数据口径（关键表）
+
+- `users`
+  - `refCode`（邀请码）、`ref_by`（上级）、`deposit_wallet`、`interest_wallet`
+- `transactions`
+  - `amount`、`trx_type`（`+`/`-`）、`remark`（如 `deposit`、`invest`、`interest`、`referral_commission` 等）、`wallet_type`
+  - 以此表为准进行“累计充值”“佣金收益”等统计
+- `invests`（或同类）
+  - 投资订单、计息、资本返还等
+
+### 统计口径说明（常见问答）
+<img width="1611" height="1131" alt="截屏2025-09-17 21 49 28" src="https://github.com/user-attachments/assets/c3c56f92-d242-4b16-88c7-1122a29a441e" />
+<img width="248" height="1557" alt="截屏2025-09-17 21 48 10" src="https://github.com/user-attachments/assets/3e3a34e9-5eb8-433d-98eb-6cb43a97d2f3" />
+<img width="513" height="1060" alt="截屏2025-09-17 21 45 20" src="https://github.com/user-attachments/assets/56739449-20f7-452f-ba13-1613c4465f72" />
+
+- **累计充值 vs. 钱包余额**
+  - 累计充值：来自交易表的充值成功流水之和（不会因后续投资扣款而减少）
+  - 钱包余额：充值后扣减投资、返还本金、收益入账等动态变化后的当前值
+- **推荐用户数**
+  - 统计直接下级：`SELECT COUNT(*) FROM users WHERE ref_by = 当前用户ID`
+- **佣金总额**
+  - 交易表中 `remark='referral_commission'` 的合计
+
+### 管理后台能力（示意）
+<img width="248" height="1557" alt="截屏2025-09-17 21 48 10" src="https://github.com/user-attachments/assets/4900cb77-7794-4356-8e7e-91686ff09f96" />
+
+- 用户管理、资金概览、充值/提现审核
+- 投资计划与网关配置、费率与限额
+- 文案模板、国际化、公告与 CMS 区块
+- 审计日志、异常监控、黑白名单与风控策略（可扩展）
+
+### 运维与部署（概览）
+
+- 环境：PHP 7.4+/8.x、MySQL 5.7+/8.x
+- 推荐开启：OPcache、PDO 持久连接、合理的 SQL 索引（`transactions.user_id, remark, trx_type, created_at`）
+- 备份：数据库与上传资产的定时快照
+
+### 可扩展方向（Roadmap）
+
+- 充值/提现渠道对接更多主流网关
+- 团队、佣金、投资的多维度图表分析
+- 报表导出、API SDK、Webhook 回调
+- 风险控制（异常交易检测、地理围栏、设备指纹）<img width="1702" height="915" alt="截屏2025-09-17 21 50 19" src="https://github.com/user-attachments/assets/172f969c-9e2e-430b-a30b-d0fea7de9f36" />
+<img width="497" height="979" alt="截屏2025-09-17 21 45 30" src="https://github.com/user-attachments/assets/d6add3c5-4239-4ffd-af5e-7a81b1e9cfae" />
+
+
+### 参考链接
+
+- 团队总览页：[`https://www.127.0.0.1.icu/referrals.php`](https://www.127.0.0.1.icu/referrals.php)
+- 团队详情页：[`https://www.127.0.0.1.icu/team_details.php?level=1`](https://www.127.0.0.1.icu/team_details.php?level=1)
+- 充值历史（示例口径页）：[`https://www.127.0.0.1.top/user/deposit/history`](https://www.127.0.0.1.top/user/deposit/history)
+
+### 联系方式<img width="3196" height="1686" alt="截屏2025-09-17 21 47 49" src="https://github.com/user-attachments/assets/d6a30548-3a47-4d7f-87c3-831a2aa2f3ca" />
+
+
+- 技术交流 / 商务合作：**✈️@mszrcsz**
+
